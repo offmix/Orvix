@@ -9,6 +9,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Orvix — private AI chat running in your browser." },
       { property: "og:title", content: "Orvix" },
       { property: "og:description", content: "Private AI chat running in your browser." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,

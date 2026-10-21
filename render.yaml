@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: orvix
+    runtime: node
+    plan: free
+    repo: https://github.com/offmix/Orvix
+    branch: main
+    buildCommand: bun install --frozen-lockfile && bun run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: RENDER
+        value: "true"
+      - key: HOST
+        value: 0.0.0.0

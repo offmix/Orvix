@@ -11,5 +11,6 @@
 
 <!-- ORVIX:BEGIN -->
 - Orvix's canonical repository is https://github.com/offmix/Orvix. Lovable Git sync can only create and track a new repository, so publish source to this existing repo through the linked GitHub connector (blobs -> tree -> commit -> ref) instead of `git push`.
+- Render builds use Nitro's node-server preset only when RENDER=true; other builds retain Lovable's default so both hosting environments remain supported.
 <!-- ORVIX:END -->
 
