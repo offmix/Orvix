@@ -97,7 +97,7 @@ function Index() {
           value={model}
           onChange={(e) => setModel(e.target.value)}
           disabled={busy}
-          className="border border-border bg-card px-2 py-1 outline-none"
+          className="rounded-lg border border-border bg-card px-2 py-1 outline-none"
         >
           {MODELS.map((m) => (
             <option key={m} value={m}>{m.replace("-MLC", "")}</option>
@@ -106,14 +106,14 @@ function Index() {
         <button
           onClick={load}
           disabled={busy || ready}
-          className="border border-border px-3 py-1 hover:bg-accent disabled:opacity-40"
+          className="rounded-lg border border-border px-3 py-1 hover:bg-accent disabled:opacity-40"
         >
           {progress !== null ? `${progress}%` : ready ? "●" : "Load"}
         </button>
         <button
           onClick={() => setMsgs([])}
           disabled={busy}
-          className="border border-border px-3 py-1 hover:bg-accent disabled:opacity-40"
+          className="rounded-lg border border-border px-3 py-1 hover:bg-accent disabled:opacity-40"
         >
           New
         </button>
@@ -136,7 +136,7 @@ function Index() {
               key={i}
               className={
                 m.role === "user"
-                  ? "ml-auto w-fit max-w-[85%] whitespace-pre-wrap bg-secondary px-3 py-2"
+                  ? "ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-lg bg-secondary px-3 py-2"
                   : "whitespace-pre-wrap leading-relaxed"
               }
             >
@@ -157,11 +157,11 @@ function Index() {
             }}
             rows={1}
             disabled={!ready}
-            className="flex-1 resize-none border border-border bg-card px-3 py-2 outline-none focus:border-ring disabled:opacity-40"
+            className="flex-1 resize-none rounded-lg border border-border bg-card px-3 py-2 outline-none focus:border-ring disabled:opacity-40"
           />
           <button
             disabled={!ready || busy || !input.trim()}
-            className="bg-primary px-4 text-primary-foreground disabled:opacity-30"
+            className="rounded-lg bg-primary px-4 text-primary-foreground disabled:opacity-30"
           >
             →
           </button>
