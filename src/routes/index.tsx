@@ -30,7 +30,7 @@ function Index() {
   const [model, setModel] = useState<string>(MODELS[0]!);
   const [loaded, setLoaded] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [progress, setProgress] = useState("");
+  const [progress, setProgress] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -48,7 +48,7 @@ function Index() {
     const create = (idb: boolean) =>
       webllm.CreateMLCEngine(model, {
         appConfig: { ...webllm.prebuiltAppConfig, cacheBackend: idb ? "indexeddb" : "cache" },
-        initProgressCallback: (p) => setProgress(`${Math.round(p.progress * 100)}%`),
+        initProgressCallback: (p) => setProgress(Math.round(p.progress * 100)),
       });
     try {
       await engine.current?.unload();
@@ -62,7 +62,7 @@ function Index() {
       console.error(e);
       setError(e instanceof Error ? e.message : String(e));
     }
-    setProgress("");
+    setProgress(null);
     setBusy(false);
   }
 
@@ -75,7 +75,7 @@ function Index() {
     setInput("");
     setBusy(true);
     try {
-      const stream = await engine.current.chat.completions.create({ messages: next, stream: true });
+      const stream = await engine.current.chat.completions.create({ messages: next, stream: true, temperature: 0.3 });
       let out = "";
       for await (const c of stream) {
         out += c.choices[0]?.delta?.content ?? "";
@@ -108,7 +108,7 @@ function Index() {
           disabled={busy || ready}
           className="border border-border px-3 py-1 hover:bg-accent disabled:opacity-40"
         >
-          {progress || (ready ? "●" : "Load")}
+          {progress !== null ? `${progress}%` : ready ? "●" : "Load"}
         </button>
         <button
           onClick={() => setMsgs([])}
@@ -118,6 +118,13 @@ function Index() {
           New
         </button>
       </header>
+      {progress !== null && (
+        <div className="border-b border-border">
+          <div className="h-0.5 bg-secondary">
+            <div className="h-full bg-primary transition-all duration-200" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      )}
       {error && (
         <div className="break-all border-b border-destructive px-4 py-2 text-destructive">{error}</div>
       )}
