@@ -85,10 +85,36 @@ function Index() {
   }
 
   const ready = loaded === model;
+  const empty = msgs.length === 0;
+
+  const composer = (
+    <form onSubmit={send} className="mx-auto w-full max-w-3xl">
+      <div className="flex items-end gap-2 rounded-lg border border-border bg-card p-2 focus-within:border-ring">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) send(e);
+          }}
+          rows={1}
+          disabled={!ready}
+          placeholder={ready ? "Message Orvix" : "Load a model first"}
+          className="max-h-40 flex-1 resize-none bg-transparent px-2 py-1.5 outline-none placeholder:text-muted-foreground disabled:opacity-40"
+        />
+        <button
+          disabled={!ready || busy || !input.trim()}
+          aria-label="Send"
+          className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground disabled:opacity-30"
+        >
+          ↑
+        </button>
+      </div>
+    </form>
+  );
 
   return (
     <div className="flex h-screen flex-col text-sm">
-      <header className="flex items-center gap-2 border-b border-border px-4 py-2">
+      <header className="flex items-center gap-2 px-4 py-2">
         <span className="mr-auto font-bold tracking-widest">ORVIX</span>
         <select
           value={model}
@@ -109,14 +135,14 @@ function Index() {
         </button>
         <button
           onClick={() => setMsgs([])}
-          disabled={busy}
+          disabled={busy || empty}
           className="rounded-lg border border-border px-3 py-1 hover:bg-accent disabled:opacity-40"
         >
           New
         </button>
       </header>
       {progress !== null && (
-        <div className="border-b border-border">
+        <div>
           <div className="h-0.5 bg-secondary">
             <div className="h-full bg-primary transition-all duration-200" style={{ width: `${progress}%` }} />
           </div>
@@ -126,44 +152,34 @@ function Index() {
         <div className="break-all border-b border-destructive px-4 py-2 text-destructive">{error}</div>
       )}
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl space-y-4 px-4 py-6">
-          {msgs.map((m, i) => (
-            <div
-              key={i}
-              className={
-                m.role === "user"
-                  ? "ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-lg bg-secondary px-3 py-2"
-                  : "whitespace-pre-wrap leading-relaxed"
-              }
-            >
-              {m.content || "▍"}
+      {empty ? (
+        <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4">
+          <h1 className="text-2xl font-bold tracking-widest">ORVIX</h1>
+          {composer}
+        </main>
+      ) : (
+        <>
+          <main className="flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+              {msgs.map((m, i) =>
+                m.role === "user" ? (
+                  <div key={i} className="flex justify-end">
+                    <div className="w-fit max-w-[85%] whitespace-pre-wrap rounded-lg bg-secondary px-3 py-2">
+                      {m.content}
+                    </div>
+                  </div>
+                ) : (
+                  <div key={i} className="whitespace-pre-wrap leading-relaxed">
+                    {m.content || "▍"}
+                  </div>
+                ),
+              )}
+              <div ref={end} />
             </div>
-          ))}
-          <div ref={end} />
-        </div>
-      </main>
-
-      <form onSubmit={send} className="border-t border-border p-3">
-        <div className="mx-auto flex max-w-3xl gap-2">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) send(e);
-            }}
-            rows={1}
-            disabled={!ready}
-            className="flex-1 resize-none rounded-lg border border-border bg-card px-3 py-2 outline-none focus:border-ring disabled:opacity-40"
-          />
-          <button
-            disabled={!ready || busy || !input.trim()}
-            className="rounded-lg bg-primary px-4 text-primary-foreground disabled:opacity-30"
-          >
-            →
-          </button>
-        </div>
-      </form>
+          </main>
+          <div className="px-4 pb-4">{composer}</div>
+        </>
+      )}
     </div>
   );
 }

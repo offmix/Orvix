@@ -14,3 +14,4 @@
 - Render builds use Nitro's node-server preset only when RENDER=true; other builds retain Lovable's default so both hosting environments remain supported.
 - Create WebLLM engines through the browser-only helper in src/lib/webllm-engine.ts so every cache backend uses the same context configuration.
 <!-- ORVIX:END -->
+
