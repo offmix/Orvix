@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { MLCEngineInterface } from "@mlc-ai/web-llm";
+import { createBrowserEngine } from "@/lib/webllm-engine";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,7 +28,7 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 function Index() {
   const engine = useRef<MLCEngineInterface | null>(null);
-  const [model, setModel] = useState<string>(MODELS[0]!);
+  const [model, setModel] = useState<string>(MODELS[0] ?? "Qwen2.5-0.5B-Instruct-q4f16_1-MLC");
   const [loaded, setLoaded] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState<number | null>(null);
@@ -44,12 +45,8 @@ function Index() {
     setError("");
     if (!("gpu" in navigator)) return setError("WebGPU未対応のブラウザです（Chrome / Edge 推奨）");
     setBusy(true);
-    const webllm = await import("@mlc-ai/web-llm");
     const create = (idb: boolean) =>
-      webllm.CreateMLCEngine(model, {
-        appConfig: { ...webllm.prebuiltAppConfig, cacheBackend: idb ? "indexeddb" : "cache" },
-        initProgressCallback: (p) => setProgress(Math.round(p.progress * 100)),
-      });
+      createBrowserEngine(model, idb, (p) => setProgress(Math.round(p.progress * 100)));
     try {
       await engine.current?.unload();
       try {
