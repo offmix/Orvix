@@ -22,6 +22,17 @@ export const Route = createFileRoute("/")({
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+function OrvixLogo({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 ${className}`} aria-hidden="true">
+      <path d="M16 3 27.3 9.5v13L16 29 4.7 22.5v-13Z" />
+      <path d="m16 3 0 8m11.3-1.5-7 4M27.3 22.5l-7-4M16 29v-8M4.7 22.5l7-4M4.7 9.5l7 4" />
+      <path d="m16 11 4.3 2.5v5L16 21l-4.3-2.5v-5Z" />
+      <circle cx="16" cy="16" r="1.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 function Index() {
   const engine = useRef<MLCEngineInterface | null>(null);
   const [model, setModel] = useState<string>(MODELS[0]?.id ?? "Qwen2.5-0.5B-Instruct-q4f16_1-MLC");
@@ -118,7 +129,7 @@ function Index() {
       {sidebarOpen && <div className="fixed inset-0 z-20 bg-background/80 md:hidden" onClick={() => setSidebarOpen(false)} />}
       <aside className={`${sidebarOpen ? "flex" : "hidden md:flex"} fixed inset-y-0 left-0 z-30 w-60 shrink-0 flex-col bg-sidebar px-3 py-4 md:static`}>
         <div className="mb-5 flex items-center justify-between px-2">
-          <span className="text-lg font-semibold">Orvix</span>
+          <span className="flex items-center gap-2 text-lg font-semibold"><OrvixLogo className="size-6" />Orvix</span>
           <Button variant="ghost" size="icon" title="Close sidebar" aria-label="Close sidebar" onClick={() => setSidebarOpen(false)} className="md:hidden"><PanelLeft /></Button>
         </div>
         <Button variant="ghost" disabled={busy} onClick={() => { setMsgs([]); setSidebarOpen(false); }} className="justify-start rounded-lg"><SquarePen /> New chat</Button>
@@ -131,7 +142,7 @@ function Index() {
       <div className="flex min-w-0 flex-1 flex-col">
       <header className="flex flex-wrap items-center gap-2 px-4 py-3">
         <Button variant="ghost" size="icon" aria-label="Open sidebar" title="Open sidebar" onClick={() => setSidebarOpen(true)} className="md:hidden"><PanelLeft /></Button>
-        <span className="mr-auto text-lg font-semibold text-muted-foreground">Orvix</span>
+        <span className="mr-auto flex items-center gap-2 text-lg font-semibold text-muted-foreground"><OrvixLogo className="size-6" />Orvix</span>
         <select
           value={model}
           onChange={(e) => setModel(e.target.value)}
@@ -179,7 +190,7 @@ function Index() {
 
       {empty ? (
         <main className="flex flex-1 flex-col items-center justify-center gap-7 px-4 pb-20">
-          <h1 className="text-3xl font-semibold">Orvix</h1>
+          <h1 className="flex items-center gap-3 text-3xl font-semibold"><OrvixLogo className="size-10" />Orvix</h1>
           {composer}
         </main>
       ) : (
