@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { MLCEngineInterface } from "@mlc-ai/web-llm";
 import { createBrowserEngine } from "@/lib/webllm-engine";
+import { MODELS } from "@/lib/models";
+import { Button } from "@/components/ui/button";
+import { ArrowUp, Check, Download, LoaderCircle, PanelLeft, SquarePen } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,18 +20,12 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const MODELS = [
-  "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
-  "Llama-3.2-1B-Instruct-q4f16_1-MLC",
-  "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
-  "Llama-3.2-3B-Instruct-q4f16_1-MLC",
-];
-
 type Msg = { role: "user" | "assistant"; content: string };
 
 function Index() {
   const engine = useRef<MLCEngineInterface | null>(null);
-  const [model, setModel] = useState<string>(MODELS[0] ?? "Qwen2.5-0.5B-Instruct-q4f16_1-MLC");
+  const [model, setModel] = useState<string>(MODELS[0]?.id ?? "Qwen2.5-0.5B-Instruct-q4f16_1-MLC");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loaded, setLoaded] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState<number | null>(null);
@@ -45,6 +42,8 @@ function Index() {
     setError("");
     if (!("gpu" in navigator)) return setError("WebGPU未対応のブラウザです（Chrome / Edge 推奨）");
     setBusy(true);
+    setProgress(0);
+    setLoaded(null);
     const create = (idb: boolean) =>
       createBrowserEngine(model, idb, (p) => setProgress(Math.round(p.progress * 100)));
     try {
@@ -89,7 +88,7 @@ function Index() {
 
   const composer = (
     <form onSubmit={send} className="mx-auto w-full max-w-3xl">
-      <div className="flex items-end gap-2 rounded-lg border border-border bg-card p-2 focus-within:border-ring">
+      <div className="flex items-end gap-2 rounded-lg border border-border bg-card p-3 focus-within:border-ring">
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -97,53 +96,79 @@ function Index() {
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) send(e);
           }}
           rows={1}
+          aria-label="Message Orvix"
           disabled={!ready}
           placeholder={ready ? "Message Orvix" : "Load a model first"}
-          className="max-h-40 flex-1 resize-none bg-transparent px-2 py-1.5 outline-none placeholder:text-muted-foreground disabled:opacity-40"
+          className="min-w-0 max-h-40 flex-1 resize-none bg-transparent px-2 py-1.5 outline-none placeholder:text-muted-foreground disabled:opacity-40"
         />
-        <button
+        <Button
+          size="icon"
           disabled={!ready || busy || !input.trim()}
           aria-label="Send"
-          className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground disabled:opacity-30"
+          className="size-9 shrink-0 rounded-lg disabled:opacity-30"
         >
-          ↑
-        </button>
+          <ArrowUp />
+        </Button>
       </div>
     </form>
   );
 
   return (
-    <div className="flex h-screen flex-col text-sm">
-      <header className="flex items-center gap-2 px-4 py-2">
-        <span className="mr-auto font-bold tracking-widest">ORVIX</span>
+    <div className="flex h-dvh overflow-hidden text-sm">
+      {sidebarOpen && <div className="fixed inset-0 z-20 bg-background/80 md:hidden" onClick={() => setSidebarOpen(false)} />}
+      <aside className={`${sidebarOpen ? "flex" : "hidden md:flex"} fixed inset-y-0 left-0 z-30 w-60 shrink-0 flex-col bg-sidebar px-3 py-4 md:static`}>
+        <div className="mb-5 flex items-center justify-between px-2">
+          <span className="text-lg font-semibold">Orvix</span>
+          <Button variant="ghost" size="icon" title="Close sidebar" aria-label="Close sidebar" onClick={() => setSidebarOpen(false)} className="md:hidden"><PanelLeft /></Button>
+        </div>
+        <Button variant="ghost" disabled={busy} onClick={() => { setMsgs([]); setSidebarOpen(false); }} className="justify-start rounded-lg"><SquarePen /> New chat</Button>
+        {msgs.length > 0 && <div className="mt-8">
+          <p className="mb-2 px-3 text-xs text-muted-foreground">Current chat</p>
+          <div className="truncate rounded-lg bg-sidebar-accent px-3 py-2">{msgs[0]?.content}</div>
+        </div>}
+        <div className="mt-auto border-t border-sidebar-border px-2 pt-4 text-xs text-muted-foreground">{MODELS.find((m) => m.id === (loaded ?? model))?.name}</div>
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+      <header className="flex flex-wrap items-center gap-2 px-4 py-3">
+        <Button variant="ghost" size="icon" aria-label="Open sidebar" title="Open sidebar" onClick={() => setSidebarOpen(true)} className="md:hidden"><PanelLeft /></Button>
+        <span className="mr-auto text-lg font-semibold text-muted-foreground">Orvix</span>
         <select
           value={model}
           onChange={(e) => setModel(e.target.value)}
           disabled={busy}
-          className="rounded-lg border border-border bg-card px-2 py-1 outline-none"
+          aria-label="Model"
+          className="h-9 min-w-0 max-w-[55%] rounded-lg bg-background px-2 outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
           {MODELS.map((m) => (
-            <option key={m} value={m}>{m.replace("-MLC", "")}</option>
+            <option key={m.id} value={m.id}>{m.name}</option>
           ))}
         </select>
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={load}
           disabled={busy || ready}
-          className="rounded-lg border border-border px-3 py-1 hover:bg-accent disabled:opacity-40"
+          className="min-w-20 rounded-lg"
         >
-          {progress !== null ? `${progress}%` : ready ? "●" : "Load"}
-        </button>
-        <button
+          {progress !== null ? <LoaderCircle className="animate-spin" /> : ready ? <Check /> : <Download />}
+          {progress !== null ? `${progress}%` : ready ? "Ready" : "Load"}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setMsgs([])}
           disabled={busy || empty}
-          className="rounded-lg border border-border px-3 py-1 hover:bg-accent disabled:opacity-40"
+          aria-label="New chat"
+          title="New chat"
+          className="rounded-lg"
         >
-          New
-        </button>
+          <SquarePen />
+        </Button>
       </header>
       {progress !== null && (
-        <div>
-          <div className="h-0.5 bg-secondary">
+        <div className="px-5 pb-3" role="status">
+          <div className="mb-2 flex justify-between text-xs text-muted-foreground"><span>Loading {MODELS.find((m) => m.id === model)?.name}</span><span>{progress}%</span></div>
+          <div role="progressbar" aria-label="Model loading" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} className="h-1 overflow-hidden rounded-lg bg-secondary">
             <div className="h-full bg-primary transition-all duration-200" style={{ width: `${progress}%` }} />
           </div>
         </div>
@@ -153,13 +178,13 @@ function Index() {
       )}
 
       {empty ? (
-        <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4">
-          <h1 className="text-2xl font-bold tracking-widest">ORVIX</h1>
+        <main className="flex flex-1 flex-col items-center justify-center gap-7 px-4 pb-20">
+          <h1 className="text-3xl font-semibold">Orvix</h1>
           {composer}
         </main>
       ) : (
         <>
-          <main className="flex-1 overflow-y-auto">
+          <main className="min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
               {msgs.map((m, i) =>
                 m.role === "user" ? (
@@ -177,9 +202,10 @@ function Index() {
               <div ref={end} />
             </div>
           </main>
-          <div className="px-4 pb-4">{composer}</div>
+          <div className="px-4 pb-5 pt-3">{composer}</div>
         </>
       )}
+      </div>
     </div>
   );
 }
